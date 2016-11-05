@@ -1,0 +1,10 @@
+[general]
+rotation = 0
+
+[mqtt]
+host = host
+port = 1234
+username = user
+password = pass
+online_topic = /my/thing/online
+marquee_topic = /my/thing/marquee
