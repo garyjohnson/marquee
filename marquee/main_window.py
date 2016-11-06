@@ -19,7 +19,6 @@ class MainWindow(QQuickView):
         self.setHeight(self.screen().size().height())
         self.setWidth(self.screen().size().width())
         self.setResizeMode(QQuickView.SizeRootObjectToView)
-        #self.setFlags(Qt.WindowFullscreenButtonHint)
         self.setFlags(Qt.FramelessWindowHint)
 
         surfaceFormat = QSurfaceFormat()
