@@ -36,6 +36,11 @@ class Marquee(qt.QQuickItem):
     def marquee_visible(self, value):
         self._marquee_visible = value
         self.marquee_visible_changed.emit()
+        self._toggle_window_visibility(value)
+
+    def _toggle_window_visibility(self, visible):
+        signal = signals.SHOW_WINDOW if visible else signals.HIDE_WINDOW
+        dispatcher.send(signal=signal, sender=self)
 
     @qt.pyqtProperty(str, notify=marquee_image_url_changed)
     def marquee_image_url(self):

@@ -3,31 +3,61 @@ try:
 except:
     import configparser as config
 
-from PyQt5.Qt import QUrl, QQuickView, Qt, QWindow, QVariant, pyqtProperty, pyqtSignal, QColor, QSurfaceFormat
+import sys
+from pydispatch import dispatcher
+import marquee.signals as signals
+import PyQt5.Qt as qt
 
 
-class MainWindow(QQuickView):
+class MainWindow(qt.QQuickView):
 
-    rotation_changed = pyqtSignal()
+    rotation_changed = qt.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        super(QQuickView, self).__init__()
+        super(qt.QQuickView, self).__init__()
+        dispatcher.connect(self._on_show_window, signals.SHOW_WINDOW, sender=dispatcher.Any)
+        dispatcher.connect(self._on_hide_window, signals.HIDE_WINDOW, sender=dispatcher.Any)
+
         self._rotation = self.get_rotation()
-        self.engine().rootContext().setContextProperty('screenRotation', QVariant(self.rotation))
-        self.setSource(QUrl('main.qml'))
+        self.engine().rootContext().setContextProperty('screenRotation', qt.QVariant(self.rotation))
+        self.setSource(qt.QUrl('main.qml'))
 
         self.setHeight(self.screen().size().height())
         self.setWidth(self.screen().size().width())
-        self.setResizeMode(QQuickView.SizeRootObjectToView)
-        self.setFlags(Qt.FramelessWindowHint)
+        self.setResizeMode(qt.QQuickView.SizeRootObjectToView)
 
-        surfaceFormat = QSurfaceFormat()
+        surfaceFormat = qt.QSurfaceFormat()
         surfaceFormat.setAlphaBufferSize(8);
         self.setFormat(surfaceFormat);
         self.setClearBeforeRendering(True);
-        self.setColor(QColor(Qt.transparent));
+        self.setColor(qt.QColor(qt.Qt.transparent));
 
-    @pyqtProperty(int, notify=rotation_changed)
+        self.visible = False
+        self._refresh_window_flags()
+        self._refresh_window_state()
+
+    def _on_show_window(self):
+        self.visible = True
+        self._refresh_window_flags()
+        self._refresh_window_state()
+
+    def _on_hide_window(self):
+        self.visible = False
+        self._refresh_window_flags()
+        self._refresh_window_state()
+
+    def _refresh_window_state(self):
+        window_state = qt.Qt.WindowFullScreen if self.visible else qt.Qt.WindowMinimized
+        self.setWindowState(window_state)
+
+    def _refresh_window_flags(self):
+        window_type = qt.Qt.SubWindow if sys.platform == 'darwin' else qt.Qt.Tool
+        window_chrome = qt.Qt.FramelessWindowHint | qt.Qt.WindowSystemMenuHint
+        on_top = qt.Qt.WindowStaysOnTopHint if self.visible else 0
+
+        self.setFlags(window_type | window_chrome | on_top | qt.Qt.WindowTransparentForInput)
+
+    @qt.pyqtProperty(int, notify=rotation_changed)
     def rotation(self):
         return self._rotation
 
